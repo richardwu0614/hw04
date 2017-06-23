@@ -43,54 +43,41 @@
     
    var svg_axisx= d3.select("#hsvg1").append("g").attr("id","axisX_h1");//x軸的比例尺主群組    
 
-var xScale=d3.scale.linear();
+var xScale_hw01=d3.scale.linear();
     
 d3.json("invoice-taipei.json", function(dataSet){           
            var fDataSet = dataSet.filter(function(d){
                return d.date==="2016/8/1"&&d.city==="臺北市"&&d.amount>"1000000000";
            })
 
-//     xScale.domain([
-//            d3.min(fDataSet,function(d){
-//            return d.amount;}),
-//            d3.max(fDataSet,function(d){
-//            return d.amount;})
-//            ])
-//        .range([10, 200]);   
-
-       xScale.domain([
+       xScale_hw01.domain([
             0,
             d3.max(fDataSet,function(d){
             return d.amount;})
             ])
         .range([10, 200]);   
     
-
-    
-    
-    
-    
-    bind(fDataSet);
-    render();
+    bind_hw01(fDataSet);
+    render_hw01();
  });
     
-    function bind(dataSet){
-        var selection= d3.select("#svg1")
+    function bind_hw01(dataSet){
+        var selection_hw01= d3.select("#svg1")
             .selectAll("rect")
             .data(dataSet);
-            selection.enter().append("rect");
-            selection.exit().remove();
+            selection_hw01.enter().append("rect");
+            selection_hw01.exit().remove();
 
-        var selection_text = d3.select("#svg1")
+        var selection_text_hw01 = d3.select("#svg1")
           .selectAll("text")
           .data(dataSet);
-          selection_text.enter().append("text");
-          selection_text.exit().remove();  
-        console.log(selection);      
+          selection_text_hw01.enter().append("text");
+          selection_text_hw01.exit().remove();  
+        //console.log(selection);      
         
     }
     
-    function render(){
+    function render_hw01(){
   
         d3.select("#svg1").selectAll("text").attr({
             "x":15,
@@ -108,21 +95,21 @@ d3.json("invoice-taipei.json", function(dataSet){
                 return 10+20*i;
                 },
             width: function(d,i){
-                return xScale(d.amount);
+                return xScale_hw01(d.amount);
             },
             height: 18,
             fill: "red"
         });
         
         //x軸的比例尺
-            var xAxis=d3.svg.axis().scale(xScale)
+            var xAxis_hw01=d3.svg.axis().scale(xScale_hw01)
                 .orient("bottom")
                 .ticks('5')
                 .tickFormat(function(d){return (d/1000000000)+"G";}) ;
             d3.select("svg").append("g")
                 .attr("class","axis")
                 .attr("transform","translate(290,"+(220+10)+")")
-                .call(xAxis);        
+                .call(xAxis_hw01);        
         
     
      }    
@@ -134,6 +121,95 @@ d3.json("invoice-taipei.json", function(dataSet){
 <div id="hwt02">2.</div>
 <div id="hsvg2"></div> 
 
+<hr>
+<div id="hwt03">3.</div>
+<div id="hsvg3"></div> 
 
+<hr>
+<div id="hwt04">4.實作一個速度函式滑桿.transiMon().ease(“linear”) 按下: 播放動畫、在右邊按會返</div>
+<div id="hsvg4"></div> 
+
+<script>
+var svg_h04 = d3.select("#hsvg4").append("svg").attr({
+   width: "340",
+   height: "340"
+});
+
+svg_h04.append("g").append("rect").attr({
+  fill: "white",
+  width: "100%",
+  height: "100%"
+});
+
+//--------------------------------
+
+var easeArr = ["linear", "quad", "cubic", "sin", "exp", "circle", "elastic", "back", "bounce"];
+
+bind_hw04(easeArr);
+render_hw04();
+
+function bind_hw04(dataSet){
+  var selection_circle_hw04 = d3.select("#hsvg4>svg").selectAll("circle").data(dataSet);
+  var selection_text_hw04 = d3.select("#hsvg4>svg").selectAll("text").data(dataSet);
+  var selection_line_hw04 = d3.select("#hsvg4>svg").selectAll("line").data(dataSet);
+  
+  // 初始化設定
+  selection_line_hw04.enter().append("line").attr({
+        x1: 100,
+        y1: function(d,i){
+           return 20+i*35;
+        },
+        x2: 300,
+        y2: function(d,i){
+           return 20+i*35;
+        },
+        stroke: "lightgreen"
+   }).text(function(d){
+      return d;
+   });
+  selection_line_hw04.exit().remove();
+  
+  selection_circle_hw04.enter().append("circle").attr({
+        cx: 100,
+        cy: function(d,i){
+           return 20+i*35;
+        },
+        r: 15,
+        fill: "gold"
+   });
+  selection_circle_hw04.exit().remove();
+  
+  selection_text_hw04.enter().append("text").attr({
+        x: 5,
+        y: function(d,i){
+           return 25+i*35;
+        },
+        fill: "black"
+   }).text(function(d){
+      return d;
+   });
+  selection_text_hw04.exit().remove();
+  
+  
+} 
+
+function render_hw04(){
+
+  //需要動畫的設定
+  d3.select("#hsvg4>svg").selectAll("circle")
+  .on("click", function(d){
+      
+		d3.select(this).transition().ease(d).attr({
+            cx: d3.select(this).attr("cx")==300?100:300
+        })
+      
+  });
+     
+    
+}
+</script>
+    
+    
+    
 </body>
 </html>
