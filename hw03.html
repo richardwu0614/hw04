@@ -275,7 +275,7 @@
                         return d.category;
                     });
                     tooltip2.select("#count").text(function(){
-                        return d.count;
+                        return ("案例數:"+d.count);
                     });
                 }).on("mouseout", function() {
                     d3.select("#tooltip2").classed("hidden", true);
