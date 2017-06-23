@@ -1,0 +1,289 @@
+
+<!doctype html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>home work 4-3</title>
+    <script src="https://d3js.org/d3.v3.js"></script>
+    <style>
+        body {
+            background: #eee;
+        }
+        
+        .axis path,
+        .axis line {
+            fill: none;
+            stroke: black;
+            shape-rendering: auto;
+        }
+        
+        .axis text {
+            font-size: 10px;
+        }
+        
+        #tooltip2 {
+            position: absolute;
+            /* left: 20px; */
+            /* top:  100px; */
+            background: #fff;
+            width: 150px;
+            height: auto;
+            padding: 0px 10px;
+            border-radius: 5px;
+            box-shadow: 5px 5px 10px rgba(0, 0, 0, 0.3);
+        }
+        
+        #tooltip2.hidden {
+            display: none;
+        }
+
+    </style>
+</head>
+
+<body>
+    <div id="tooltip2" class="hidden">
+        <p><strong id="city">Hello</strong></p>
+        <p id="category">Hello</p>
+        <p id="count">tooltip2</p>
+    </div>
+    <script>
+        // 1. 定義width, height, padding, letterList變數
+        var w = 900;
+        var h = 600;
+        var p = 60;
+        var letterList = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "M", "N", "O", "P", "Q", "T", "U", "V", "W", "X", "Z"];
+
+        //2. 建立svg()畫布環境
+        var allData2;
+        svg2();
+
+        //3. 用d3讀取csv
+        d3.csv("https://a706124.github.io/homework3/cancer_data.csv", mid2, function(dataSet2) {
+            allData2 = dataSet2;
+            bind2(dataSet2);
+            render2(dataSet2);
+            btnList2(dataSet2);
+
+        });
+
+        function mid2(d) {
+            d.avg_age = +d.avg_age;
+            d.count = +d.count;
+            d.mid_age = +d.mid_age;
+            d.crude_rate = +d.crude_rate;
+            return d;
+        }
+
+        //產生行業別按鈕
+        function btnList2(dataSet2) {
+            var industryArr = dataSet2.map(function(d) {
+                return d.category;
+            });
+
+            var uIndustryArr = unique(industryArr).filter(function(d) {
+                return d.category != "";
+            });
+
+            //------- bind --------
+            /* 按鈕
+            var selection = d3.select("body")
+                            .selectAll("input")
+                            .data(uIndustryArr);
+            selection.enter().append("input");
+            selection.exit().remove();
+            */
+
+            //改成選單
+            var selection = d3.select("body")
+                .append("select").attr({
+					id:"select2",
+				})
+                .selectAll("option")
+                .data(uIndustryArr);
+            selection.enter().append("option");
+            selection.exit().remove();
+
+
+
+
+            //------- render -------
+            d3.selectAll("body>#select2>option")
+                .attr({
+                    value: function(d) {
+                        return d;
+                    }
+                })
+                .text(function(d) {
+                    return d;
+                });
+
+
+            d3.select("#select2")
+                .insert("option", ":first-child")
+                .attr({
+                    value: "全部類別"
+                })
+                .text("全部類別");
+
+            d3.select('#select2').on("change", function(d) {
+                var value = d3.select('#select2').property("value");
+
+                if (value == "全部類別") {
+                    bind(allData2);
+                    render(allData2);
+                } else {
+                    update(value);
+                }
+
+
+            });
+
+
+
+        }
+
+        function update2(industryName) {
+            var newdataSet2 = allData2.filter(function(d) {
+                return d.category == industryName;
+            });
+            bind2(newdataSet2);
+            render2(newdataSet2);
+        }
+
+        //陣列移除重複
+        function unique(array) {
+            var n = [];
+            for (var i = 0; i < array.length; i++) {
+                if (n.indexOf(array[i]) == -1)
+                    n.push(array[i]);
+            }
+            return n;
+        }
+
+        function svg2() {
+            d3.select("body").append("svg").attr({
+                width: w,
+                height: h,
+				id:"svg2",
+            });
+            d3.select("#svg2").append("g").append("rect").attr({
+                width: "100%",
+                height: "100%",
+                fill: "white"
+            });
+
+            d3.select("#svg2").append("g").attr({
+                id: "axisX"
+            });
+            d3.select("#svg2").append("g").attr({
+                id: "axisY"
+            });
+        }
+
+        //4. 建立bind()
+
+        function bind2(dataSet2) {
+            var selection = d3.select("#svg2")
+                .selectAll('circle')
+                .data(dataSet2);
+
+            selection.enter().append("circle");
+            selection.exit().remove();
+        }
+
+        function render2(dataSet2) {
+            //5. 定義xScale,yScale,rScale, fScale比例尺(range目的在決定在svg上位置)
+
+            var xScale = d3.time.scale()
+               .domain([new Date(d3.min(dataSet2, function(d){
+                        return new Date(d.date);
+                    })),new Date(d3.max(dataSet2, function(d){
+                        return new Date(d.date);
+                    }))])
+                .range([p, w - p]);
+            var yScale = d3.scale.linear()
+                .domain([0, d3.max(dataSet2, function(d) {
+                    return d.avg_age;
+                })])
+                .range([h - p, p]);
+            var rScale = d3.scale.linear()
+                .domain([
+                    d3.min(dataSet2, function(d) {
+                        return d.count;
+                    }),
+                    d3.max(dataSet2, function(d) {
+                        return d.count;
+                    }),
+                ])
+                .range([5, 20]);
+            var fScale = d3.scale.category20();
+
+            // axis X ----------------------
+            var xAxis = d3.svg.axis()
+                .scale(xScale)
+                .orient("bottom")
+                .ticks(20);
+
+            d3.select("g#axisX")
+                .attr({
+                    'class': 'axis'
+                })
+                .attr("transform", "translate(0," + (h - p + 12) + ")")
+                .call(xAxis);
+
+            // axis Y -----------------------
+            var yAxis = d3.svg.axis().scale(yScale).orient("left");
+
+            d3.select("g#axisY")
+                .attr({
+                    'class': 'axis'
+                })
+                .attr("transform", "translate(" + (p - 12) + "," + (0) + ")")
+                .call(yAxis);
+
+
+            //6. 建立render()繪圖
+            d3.selectAll("circle")
+                .attr({
+                    cx: function(d) {
+                        return xScale(new Date(d.date));
+                    },
+                    cy: function(d) {
+                        return yScale(d.avg_age);
+                    },
+                    r: function(d) {
+                        return rScale(d.count);
+                    },
+                    fill: function(d) {
+                        return fScale(d.city);
+                    }
+                }).on("mouseover", function(d) {
+                    var posX = +d3.select(this).attr("cx");
+                    var posY = +d3.select(this).attr("cy");
+
+                    var tooltip2 = d3.select("#tooltip2")
+                        .style({
+                            left: (posX + 20) + "px",
+                            top: (posY + 20) + "px"
+                        })
+                        .classed("hidden", false);
+                    tooltip2.select("#city").text(function(){
+                        return d.city;
+                    });
+                    tooltip2.select("#category").text(function(){
+                        return d.category;
+                    });
+                    tooltip2.select("#count").text(function(){
+                        return d.count;
+                    });
+                }).on("mouseout", function() {
+                    d3.select("#tooltip2").classed("hidden", true);
+                });
+        }
+
+    </script>
+
+</body>
+
+</html>
