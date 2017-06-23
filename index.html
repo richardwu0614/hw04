@@ -1,0 +1,139 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>home work 4</title>
+    <script src="https://d3js.org/d3.v3.min.js"></script> 
+    <style>
+        body{
+            background: #eee;
+        }
+        #hsvg1{
+            font-size: 16px;
+        }
+        .axis path, .axis line{
+         fill: none;
+         stroke: black;
+         shape-rendering: auto;
+        }
+        .axis text{
+        font-size: 11px;
+         fill: blue;
+        }
+
+    </style>
+
+
+</head>
+<body>
+<div id="hwt01">1.製作長條圖，資料為2016年8月且台北市且發票數量大於10億張的項目，
+加上x方向座標軸，刻度以十億(G)為單位前綴</div>
+<div id="hsvg1"></div> 
+
+<script>
+
+   var svg1_w=600;//畫布寬
+   var svg1_h=300;//畫布高
+ 
+   var svg1=d3.select("#hsvg1").append("svg").attr({
+        "width":svg1_w,
+        "height":svg1_h,
+        "id":"svg1"
+    });
+    
+   var svg_axisx= d3.select("#hsvg1").append("g").attr("id","axisX_h1");//x軸的比例尺主群組    
+
+var xScale=d3.scale.linear();
+    
+d3.json("invoice-taipei.json", function(dataSet){           
+           var fDataSet = dataSet.filter(function(d){
+               return d.date==="2016/8/1"&&d.city==="臺北市"&&d.amount>"1000000000";
+           })
+
+//     xScale.domain([
+//            d3.min(fDataSet,function(d){
+//            return d.amount;}),
+//            d3.max(fDataSet,function(d){
+//            return d.amount;})
+//            ])
+//        .range([10, 200]);   
+
+       xScale.domain([
+            0,
+            d3.max(fDataSet,function(d){
+            return d.amount;})
+            ])
+        .range([10, 200]);   
+    
+
+    
+    
+    
+    
+    bind(fDataSet);
+    render();
+ });
+    
+    function bind(dataSet){
+        var selection= d3.select("#svg1")
+            .selectAll("rect")
+            .data(dataSet);
+            selection.enter().append("rect");
+            selection.exit().remove();
+
+        var selection_text = d3.select("#svg1")
+          .selectAll("text")
+          .data(dataSet);
+          selection_text.enter().append("text");
+          selection_text.exit().remove();  
+        console.log(selection);      
+        
+    }
+    
+    function render(){
+  
+        d3.select("#svg1").selectAll("text").attr({
+            "x":15,
+            "y":function(d,i){
+                return 25+20*i;
+            }
+        }).text(function(d){
+            return d.industry;
+        });
+        
+        
+        d3.select("#svg1").selectAll("rect").attr({
+            x: 300,
+            y: function(d,i){
+                return 10+20*i;
+                },
+            width: function(d,i){
+                return xScale(d.amount);
+            },
+            height: 18,
+            fill: "red"
+        });
+        
+        //x軸的比例尺
+            var xAxis=d3.svg.axis().scale(xScale)
+                .orient("bottom")
+                .ticks('5')
+                .tickFormat(function(d){return (d/1000000000)+"G";}) ;
+            d3.select("svg").append("g")
+                .attr("class","axis")
+                .attr("transform","translate(290,"+(220+10)+")")
+                .call(xAxis);        
+        
+    
+     }    
+ 
+</script>
+
+<hr>
+
+<div id="hwt02">2.</div>
+<div id="hsvg2"></div> 
+
+
+</body>
+</html>
